@@ -1,11 +1,12 @@
 #include "CWinApp.h"
+#include <sstream>
 
 #define APP_NAME L"First DX3D Window"
 
-//Window Class
+/***************************
+*Window Class
+****************************/
 Window::WindowClass Window::WindowClass::wndClass;
-
-//constexpr const wchar_t* Window::WindowClass::wndClassName = APP_NAME;
 
 Window::WindowClass::WindowClass() noexcept
 	:hInst(GetModuleHandle(nullptr))
@@ -41,7 +42,9 @@ HINSTANCE Window::WindowClass::GetInstance()noexcept
 	return wndClass.hInst;
 }
 
-//Window
+/***************************
+*Window
+****************************/
 Window::Window(int _width, int _height, const wchar_t* _name) noexcept
 {
 	//window size base on client region
@@ -73,10 +76,13 @@ Window::~Window()
 LRESULT WINAPI Window::HandleMsgSetup(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)noexcept
 {
 	//use create param passed CreateWindow() to store window class pointer
+	//https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-nccreate
 	if (_msg == WM_NCCREATE) {
 		//extract ptr to window class from creation data
 		const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(_lParam);
 		Window* const pWnd = static_cast<Window*>(pCreate->lpCreateParams);
+
+		//https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlongptra
 		//set WinAPI-managed user data ti store prt to window class
 		SetWindowLongPtr(_hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
 		//set message proc to normal handler ,setup finished
@@ -106,4 +112,57 @@ LRESULT Window::HandleMsg(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 	}
 
 	return DefWindowProc(_hWnd, _msg, _wParam, _lParam);
+}
+
+/***************************
+*Exception
+****************************/
+Window::Exception::Exception(int _line, const char* _file, HRESULT _hr)noexcept
+	:CMyException(_line, _file)
+	, hrResult(_hr)
+{}
+
+const char* Window::Exception::what() const noexcept
+{
+	std::ostringstream oss;
+	oss << GetType() << std::endl
+		<< "[Error Code] " << GetErrorCode() << std::endl
+		<< "[Description] " << GetErrorString() << std::endl
+		<< GetOriginString();
+	sWhatBuffer = oss.str();
+	return sWhatBuffer.c_str();
+}
+
+const char* Window::Exception::GetType() const noexcept
+{
+	return "Window Exception";
+}
+
+std::string Window::Exception::TranslateErrorCode(HRESULT _hr) noexcept
+{
+	char* pmsgbuf = nullptr;
+	DWORD nmsglen = FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, _hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		reinterpret_cast<LPWSTR>(&pmsgbuf), 0, nullptr
+	);
+
+	if (nmsglen == 0) {
+		return "Unidentified error code";
+	}
+
+	std::string errorString = pmsgbuf;
+	LocalFree(pmsgbuf);
+	return errorString;
+}
+
+HRESULT Window::Exception::GetErrorCode() const noexcept
+{
+	return hrResult;
+}
+
+std::string Window::Exception::GetErrorString() const noexcept
+{
+	return TranslateErrorCode(hrResult);
 }

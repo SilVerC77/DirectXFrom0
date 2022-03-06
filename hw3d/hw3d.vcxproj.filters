@@ -21,12 +21,18 @@
     <ClCompile Include="CWinApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CMyException.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CWinApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ChiliWin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
