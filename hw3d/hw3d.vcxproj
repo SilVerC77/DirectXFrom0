@@ -149,12 +149,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CStringConverter.cpp" />
     <ClCompile Include="CWinApp.cpp" />
     <ClCompile Include="CMyException.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChiliWin.h" />
+    <ClInclude Include="CStringConverter.h" />
     <ClInclude Include="CWinApp.h" />
     <ClInclude Include="CMyException.h" />
   </ItemGroup>

@@ -11,15 +11,17 @@ class Window
 public:
 	class Exception :public CMyException
 	{
+	private:
+		HRESULT hrResult;
+	public:
 		Exception(int _line, const char* file, HRESULT _hr)noexcept;
 		const char* what()const noexcept override;
 		virtual const char* GetType()const noexcept override;
 		static std::string TranslateErrorCode(HRESULT _hr)noexcept;
 		HRESULT GetErrorCode() const noexcept;
 		std::string GetErrorString()const noexcept;
-	private:
-		HRESULT hrResult;
 	};
+
 private:
 	//Singleton
 	class WindowClass
@@ -44,7 +46,7 @@ private:
 	HWND hWnd;
 
 public:
-	Window(int _width, int _height, const wchar_t* _name) noexcept;
+	Window(int _width, int _height, const wchar_t* _name);
 	~Window();
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
@@ -55,4 +57,5 @@ private:
 };
 
 //error exception helper macro
-#define CHWND_EXCEPT(hr) Window::Exception(__LINE__,__FILE__,hr)
+#define MWND_EXCEPT(hr) Window::Exception(__LINE__,__FILE__,hr)
+#define MWND_LAST_EXCEPT()Window::Exception(__LINE__,__FILE__,GetLastError())

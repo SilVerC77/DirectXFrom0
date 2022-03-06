@@ -1,4 +1,5 @@
-#include "CWinApp.h"
+﻿#include "CWinApp.h"
+
 #include <sstream>
 
 #define APP_NAME L"First DX3D Window"
@@ -45,7 +46,7 @@ HINSTANCE Window::WindowClass::GetInstance()noexcept
 /***************************
 *Window
 ****************************/
-Window::Window(int _width, int _height, const wchar_t* _name) noexcept
+Window::Window(int _width, int _height, const wchar_t* _name)
 {
 	//window size base on client region
 	RECT wr;
@@ -53,7 +54,15 @@ Window::Window(int _width, int _height, const wchar_t* _name) noexcept
 	wr.right = _width + wr.left;
 	wr.top = 100;
 	wr.bottom = _height + wr.top;
-	AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
+
+	if (FAILED(AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE)))
+	{
+		throw MWND_LAST_EXCEPT();
+	};
+
+	//throw CHWND_EXCEPT(ERROR_ARENA_TRASHED);
+	//throw std::runtime_error("error test");
+	//throw 7908012-9;
 
 	//create Window
 	hWnd = CreateWindow(
@@ -62,6 +71,12 @@ Window::Window(int _width, int _height, const wchar_t* _name) noexcept
 		CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top,
 		nullptr, nullptr, WindowClass::GetInstance(), this
 	);
+
+	// check for error
+	if (hWnd == nullptr)
+	{
+		throw MWND_LAST_EXCEPT();
+	}
 
 	//show Window
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
@@ -106,6 +121,7 @@ LRESULT WINAPI Window::HandleMsgThunk(HWND _hWnd, UINT _msg, WPARAM _wParam, LPA
 LRESULT Window::HandleMsg(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam) noexcept
 {
 	switch (_msg) {
+		//destructor destroy window so just return 0
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
@@ -135,19 +151,22 @@ const char* Window::Exception::what() const noexcept
 
 const char* Window::Exception::GetType() const noexcept
 {
-	return "Window Exception";
+	return "My Window Exception";
 }
 
 std::string Window::Exception::TranslateErrorCode(HRESULT _hr) noexcept
 {
 	char* pmsgbuf = nullptr;
-	DWORD nmsglen = FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+	//TODO:Without A
+	DWORD nmsglen = FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER		//      テキストのメモリ割り当てを要求する
+		| FORMAT_MESSAGE_FROM_SYSTEM		//      エラーメッセージはWindowsが用意しているものを使用
+		| FORMAT_MESSAGE_IGNORE_INSERTS,	//      次の引数を無視してエラーコードに対するエラーメッセージを作成する
 		nullptr, _hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		reinterpret_cast<LPWSTR>(&pmsgbuf), 0, nullptr
+		(LPSTR)&pmsgbuf, 0, nullptr
 	);
 
+	// 0 string length returned indicates a failure
 	if (nmsglen == 0) {
 		return "Unidentified error code";
 	}
