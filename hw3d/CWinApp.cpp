@@ -1,6 +1,6 @@
 ﻿#include "CWinApp.h"
-
 #include <sstream>
+#include "resource.h"
 
 #define APP_NAME L"First DX3D Window"
 
@@ -19,12 +19,13 @@ Window::WindowClass::WindowClass() noexcept
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = GetInstance();
-	wc.hIcon = nullptr;
+	//https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-loadimagea
+	wc.hIcon = static_cast<HICON>(LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 32, 32, 0));
 	wc.hCursor = nullptr;
 	wc.hbrBackground = nullptr;
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = GetName();
-	wc.hIconSm = nullptr;
+	wc.hIconSm = static_cast<HICON>(LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 16, 16, 0));
 	RegisterClassEx(&wc);
 }
 
@@ -98,7 +99,7 @@ LRESULT WINAPI Window::HandleMsgSetup(HWND _hWnd, UINT _msg, WPARAM _wParam, LPA
 		Window* const pWnd = static_cast<Window*>(pCreate->lpCreateParams);
 
 		//https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlongptra
-		//set WinAPI-managed user data ti store prt to window class
+		//set WinAPI-managed user data to store prt to window class
 		SetWindowLongPtr(_hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
 		//set message proc to normal handler ,setup finished
 		SetWindowLongPtr(_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Window::HandleMsgThunk));
@@ -170,8 +171,9 @@ std::string Window::Exception::TranslateErrorCode(HRESULT _hr) noexcept
 	if (nmsglen == 0) {
 		return "Unidentified error code";
 	}
-
+	//copy error string from window
 	std::string errorString = pmsgbuf;
+	//free window buffer
 	LocalFree(pmsgbuf);
 	return errorString;
 }
