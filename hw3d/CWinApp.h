@@ -5,6 +5,7 @@
 #pragma once
 #include "ChiliWin.h"
 #include "CMyException.h"
+#include "CKeyboard.h"
 
 class Window
 {
@@ -40,6 +41,8 @@ private:
 		HINSTANCE hInst;
 	};
 
+public:
+	CKeyboard Keyboard;
 private:
 	int iWidth;
 	int iHeight;

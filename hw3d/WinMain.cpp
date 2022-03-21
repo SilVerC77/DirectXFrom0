@@ -10,6 +10,10 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		while ((gResult = GetMessage(&msg, nullptr, 0, 0)) > 0) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
+
+			if (wnd.Keyboard.IsPressed(VK_MENU)) {
+				MessageBox(nullptr, L"TODO", L"Alt is Pressed", MB_OK | MB_ICONEXCLAMATION);
+			}
 		}
 
 		if (gResult == -1) {

@@ -126,6 +126,29 @@ LRESULT Window::HandleMsg(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
+
+		//Keyboard==================================================
+	case WM_KILLFOCUS:
+		Keyboard.ClearState();
+		break;
+
+	case WM_KEYDOWN:
+		//syskey
+	case WM_SYSKEYDOWN:
+		if (!(_lParam & 0x40000000 || Keyboard.IsAutorepeat())) {
+			Keyboard.KeyPressed(static_cast<unsigned char>(_wParam));
+			break;
+		}
+
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		Keyboard.KeyReleased(static_cast<unsigned char>(_wParam));
+		break;
+
+	case WM_CHAR:
+		Keyboard.OnChar(static_cast<unsigned char>(_wParam));
+		break;
+		//=================================================Keyboard
 	}
 
 	return DefWindowProc(_hWnd, _msg, _wParam, _lParam);
