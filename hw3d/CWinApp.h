@@ -6,6 +6,7 @@
 #include "ChiliWin.h"
 #include "CMyException.h"
 #include "CKeyboard.h"
+#include "CMouse.h"
 
 class Window
 {
@@ -43,6 +44,8 @@ private:
 
 public:
 	CKeyboard Keyboard;
+	CMouse Mouse;
+
 private:
 	int iWidth;
 	int iHeight;
