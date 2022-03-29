@@ -25,6 +25,11 @@ bool CMouse::IsRightPressed() const
 	return bRightPressed;
 }
 
+bool CMouse::IsInWindow() const
+{
+	return bInWindow;
+}
+
 CMouse::CEvent CMouse::Read()
 {
 	if (Buffer.size() > 0u) {
@@ -48,6 +53,20 @@ void CMouse::MouseMove(int _x, int _y)
 	iY = _y;
 
 	Buffer.push(CMouse::CEvent(CMouse::CEvent::EType::Move, *this));
+	TrimBuffer();
+}
+
+void CMouse::MouseEnter()
+{
+	bInWindow = true;
+	Buffer.push(CMouse::CEvent(CMouse::CEvent::EType::Enter, *this));
+	TrimBuffer();
+}
+
+void CMouse::MouseLeave()
+{
+	bInWindow = false;
+	Buffer.push(CMouse::CEvent(CMouse::CEvent::EType::Leave, *this));
 	TrimBuffer();
 }
 

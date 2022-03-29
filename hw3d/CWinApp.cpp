@@ -2,6 +2,7 @@
 #include <sstream>
 #include "resource.h"
 
+
 #define APP_NAME L"First DX3D Window"
 
 /***************************
@@ -48,6 +49,8 @@ HINSTANCE Window::WindowClass::GetInstance()noexcept
 *Window
 ****************************/
 Window::Window(int _width, int _height, const wchar_t* _name)
+	:iWidth(_width)
+	, iHeight(_height)
 {
 	//window size base on client region
 	RECT wr;
@@ -56,7 +59,7 @@ Window::Window(int _width, int _height, const wchar_t* _name)
 	wr.top = 100;
 	wr.bottom = _height + wr.top;
 
-	if (FAILED(AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE)))
+	if (AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE) == 0)
 	{
 		throw MWND_LAST_EXCEPT();
 	};
@@ -87,6 +90,13 @@ Window::~Window()
 {
 	//Only destroy window from destructor
 	DestroyWindow(hWnd);
+}
+
+void Window::SetTitle(const std::string& _title)
+{
+	if (SetWindowTextA(hWnd, _title.c_str()) == 0) {
+		throw MWND_LAST_EXCEPT();
+	}
 }
 
 LRESULT WINAPI Window::HandleMsgSetup(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)noexcept
@@ -152,12 +162,29 @@ LRESULT Window::HandleMsg(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 
 		//Mouse====================================================
 	case WM_MOUSEMOVE: {
-		POINTS point = MAKEPOINTS(_lParam);
-		Mouse.MouseMove(point.x, point.y);
+		const POINTS point = MAKEPOINTS(_lParam);
+		if (point.x >= 0 && point.x < iWidth && point.y >= 0 && point.y < iHeight) {
+			Mouse.MouseMove(point.x, point.y);
+			if (!Mouse.IsInWindow()) {
+				SetCapture(hWnd);
+				Mouse.MouseEnter();
+			}
+		}
+		else {
+			if (_wParam & (MK_LBUTTON | MK_RBUTTON)) {
+				Mouse.MouseMove(point.x, point.y);
+			}
+			else {
+				ReleaseCapture();
+				Mouse.MouseLeave();
+			}
+		}
+		
 		break;
 	}
 	case WM_LBUTTONDOWN: {
-		const POINTS point = MAKEPOINTS(_lParam);
+		
+		const POINTS point = MAKEPOINTS(_lParam); 
 		Mouse.LeftPressed(/*point.x, point.y*/);
 		break;
 	}
@@ -186,7 +213,7 @@ LRESULT Window::HandleMsg(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 		}
 		break;
 	}
-	  //====================================================Mouse
+					  //====================================================Mouse
 	}
 
 

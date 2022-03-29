@@ -15,6 +15,8 @@ public:
 			WheelUp,
 			WheelDown,
 			Move,
+			Enter,
+			Leave,
 			Unknow
 		};
 
@@ -56,6 +58,7 @@ private:
 	int iY;
 	bool bLeftPressed = false;
 	bool bRightPressed = false;
+	bool bInWindow = false;
 	std::queue<CEvent> Buffer;
 
 public:
@@ -65,12 +68,15 @@ public:
 	int GetPosY()const;
 	bool IsLeftPressed()const;
 	bool IsRightPressed()const;
+	bool IsInWindow()const;
 	CMouse::CEvent Read();
 	bool IsEmpty()const { return Buffer.empty(); }
 	void Clear();
 
 private:
 	void MouseMove(int _x, int _y);
+	void MouseEnter();
+	void MouseLeave();
 	void LeftPressed();
 	void LeftReleased();
 	void RightPressed();

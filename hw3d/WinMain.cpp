@@ -1,4 +1,5 @@
 #include "CWinApp.h"
+#include <sstream>
 
 int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -11,9 +12,23 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 
-		/*	if (wnd.Keyboard.IsPressed(VK_MENU)) {
-				MessageBox(nullptr, L"TODO", L"Alt is Pressed", MB_OK | MB_ICONEXCLAMATION);
-			}*/
+			while (!wnd.Mouse.IsEmpty()) {
+				const auto e = wnd.Mouse.Read();
+				switch (e.GetType()) {
+				case CMouse::CEvent::EType::Leave:
+					wnd.SetTitle("Gone");
+					break;
+				case CMouse::CEvent::EType::Move: {
+					std::ostringstream oss;
+					oss << "Mouse Position: (" << e.GetPosX() << "," << e.GetPosY();
+					wnd.SetTitle(oss.str());
+				}break;
+				}
+
+			}
+			/*	if (wnd.Keyboard.IsPressed(VK_MENU)) {
+					MessageBox(nullptr, L"TODO", L"Alt is Pressed", MB_OK | MB_ICONEXCLAMATION);
+				}*/
 		}
 
 		if (gResult == -1) {
