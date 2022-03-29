@@ -20,7 +20,7 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			return -1;
 		}
 
-		return msg.wParam;
+		return (int)msg.wParam;
 	}
 	catch (const CMyException& e)
 	{
