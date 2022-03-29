@@ -99,6 +99,24 @@ void Window::SetTitle(const std::string& _title)
 	}
 }
 
+std::optional<int> Window::ProcessMessages()
+{
+	MSG msg;
+	//GetMessage will pause while no input,so use PeekMessage
+	//https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-peekmessagea
+	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+		if (msg.message == WM_QUIT) {
+			return msg.wParam;
+		}
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	//return empty optional when not quit
+	return {};
+}
+
 LRESULT WINAPI Window::HandleMsgSetup(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)noexcept
 {
 	//use create param passed CreateWindow() to store window class pointer
