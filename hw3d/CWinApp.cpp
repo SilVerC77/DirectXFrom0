@@ -179,12 +179,11 @@ LRESULT Window::HandleMsg(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 				Mouse.MouseLeave();
 			}
 		}
-		
+
 		break;
 	}
 	case WM_LBUTTONDOWN: {
-		
-		const POINTS point = MAKEPOINTS(_lParam); 
+		const POINTS point = MAKEPOINTS(_lParam);
 		Mouse.LeftPressed(/*point.x, point.y*/);
 		break;
 	}
@@ -205,12 +204,8 @@ LRESULT Window::HandleMsg(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 	}
 	case WM_MOUSEWHEEL: {
 		const POINTS point = MAKEPOINTS(_lParam);
-		if (GET_WHEEL_DELTA_WPARAM(_wParam) > 0) {
-			Mouse.WheelUp();
-		}
-		else if (GET_WHEEL_DELTA_WPARAM(_wParam) < 0) {
-			Mouse.WheelDown();
-		}
+		const int delta = GET_WHEEL_DELTA_WPARAM(_wParam);
+		Mouse.WheelDelta(delta);
 		break;
 	}
 					  //====================================================Mouse

@@ -1,4 +1,5 @@
 #include "CMouse.h"
+#include <Windows.h>
 
 std::pair<int, int> CMouse::GetPose() const
 {
@@ -108,6 +109,20 @@ void CMouse::WheelDown()
 {
 	Buffer.push(CMouse::CEvent(CMouse::CEvent::EType::WheelUp, *this));
 	TrimBuffer();
+}
+
+void CMouse::WheelDelta(int _delta)
+{
+	iWheelDeltaCarry += _delta;
+	//event every 120(WHEEL_DELTA)
+	while (iWheelDeltaCarry >= WHEEL_DELTA) {
+		iWheelDeltaCarry -= WHEEL_DELTA;
+		WheelUp();
+	}
+	while (iWheelDeltaCarry <= -WHEEL_DELTA) {
+		iWheelDeltaCarry += WHEEL_DELTA;
+		WheelDown();
+	}
 }
 
 void CMouse::TrimBuffer()

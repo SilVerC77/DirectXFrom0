@@ -56,6 +56,7 @@ private:
 	static constexpr unsigned int iBufferSize = 16u;
 	int iX;
 	int iY;
+	int iWheelDeltaCarry = 0;
 	bool bLeftPressed = false;
 	bool bRightPressed = false;
 	bool bInWindow = false;
@@ -83,5 +84,6 @@ private:
 	void RightReleased();
 	void WheelUp();
 	void WheelDown();
+	void WheelDelta(int _delta);
 	void TrimBuffer();
 };
