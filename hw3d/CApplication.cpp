@@ -8,7 +8,7 @@ CApplication::CApplication()
 
 int CApplication::Run()
 {
-	long time = Timer.GetTime();
+	float time = Timer.GetTime();
 	while (true) {
 		//process pending message
 		if (const auto message = Window::ProcessMessages()) {
@@ -26,9 +26,13 @@ int CApplication::Run()
 void CApplication::Loop()
 {
 	Timer.UpdateTimer();
-	const float dt = Timer.GetDeltaTime();
+	const float dt = Timer.GetTime();
 	std::ostringstream oss;
 	oss << "Time elapsed: " << dt << "s";
 	Wnd.SetTitle(oss.str());
+
+	const float c = sin(Timer.GetTime() / 2.f + .5f);
+	Wnd.GetGraphics().ClearBuffer(c, c, 1.f);
+	Wnd.GetGraphics().EndRender();
 
 }

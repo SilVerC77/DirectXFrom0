@@ -2,15 +2,17 @@
 
 CTimer::CTimer()
 	:fDeltaTime(0.f)
-{}
+{
+	Mark();
+}
 
 void CTimer::UpdateTimer()
 {
 	using namespace std::chrono;
 
-	const auto previous = nowTime;
-	nowTime = steady_clock::now();
-	const duration<float> frametime = nowTime - previous;
+	const auto previous = NowTime;
+	NowTime = steady_clock::now();
+	const duration<float, std::milli> frametime = NowTime - previous;
 	fDeltaTime = frametime.count();
 }
 
@@ -19,7 +21,14 @@ float CTimer::GetDeltaTime() const
 	return fDeltaTime;
 }
 
-long CTimer::GetTime()const
+float CTimer::GetTime()const
 {
-	return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	const auto now = std::chrono::steady_clock::now();
+	const auto time = now - MarkTime;
+	return std::chrono::duration<float>(time).count();	
+}
+
+void CTimer::Mark()
+{
+	MarkTime = std::chrono::steady_clock::now();
 }

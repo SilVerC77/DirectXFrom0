@@ -153,6 +153,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CApplication.cpp" />
+    <ClCompile Include="CGraphics.cpp" />
     <ClCompile Include="CKeyboard.cpp" />
     <ClCompile Include="CMouse.cpp" />
     <ClCompile Include="CStringConverter.cpp" />
@@ -170,6 +171,7 @@
     <ClInclude Include="CWinApp.h" />
     <ClInclude Include="CMyException.h" />
     <ClInclude Include="CKeyboard.h" />
+    <ClInclude Include="CGraphics.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

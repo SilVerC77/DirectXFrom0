@@ -7,7 +7,9 @@
 #include "CMyException.h"
 #include "CKeyboard.h"
 #include "CMouse.h"
+#include "CGraphics.h"
 #include <optional>
+#include <memory>
 
 class Window
 {
@@ -51,6 +53,7 @@ private:
 	int iWidth;
 	int iHeight;
 	HWND hWnd;
+	std::unique_ptr<CGraphics> pGraphics;
 
 public:
 	Window(int _width, int _height, const wchar_t* _name);
@@ -59,6 +62,8 @@ public:
 	Window& operator=(const Window&) = delete;
 	void SetTitle(const std::string& _title);
 	static std::optional<int> ProcessMessages();
+
+	CGraphics& GetGraphics();
 
 private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)noexcept;
