@@ -1,5 +1,12 @@
 #include "CGraphics.h"
+#include "dxerr.h"
+#include <sstream>
+
 #pragma comment(lib,"d3d11.lib")
+
+//Debug										**expect hr in local scope  **makesure declared a hr before use this macro
+#define GFX_THROW_FAILED(hrcall) if (FAILED(hr = (hrcall))) throw CGraphics::HrException(__LINE__, __FILE__, hr)
+#define GFX_DEVICE_REMOVED_EXCEPT(hr) CGraphics::DeviceRemovedException( __LINE__,__FILE__,(hr) )
 
 CGraphics::CGraphics(HWND _hWnd)
 {
@@ -21,8 +28,12 @@ CGraphics::CGraphics(HWND _hWnd)
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
+	//check results of d3d functions
+	HRESULT hr;
+
+
 	//https://docs.microsoft.com/en-us/windows/win32/api/d3d9/nf-d3d9-idirect3ddevice9-createadditionalswapchain 
-	D3D11CreateDeviceAndSwapChain(
+	GFX_THROW_FAILED(D3D11CreateDeviceAndSwapChain(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
 		nullptr,
@@ -35,13 +46,13 @@ CGraphics::CGraphics(HWND _hWnd)
 		&pDevice,
 		nullptr,
 		&pContext
-	);
+	));
 
 	//https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-clearrendertargetview
 	//access texture Subresource in swap chain(back buffer)
 	ID3D11Resource* backbuffer = nullptr;
-	pSwap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&backbuffer));
-	pDevice->CreateRenderTargetView(backbuffer, nullptr, &pTarget);
+	GFX_THROW_FAILED(pSwap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&backbuffer)));
+	GFX_THROW_FAILED(pDevice->CreateRenderTargetView(backbuffer, nullptr, &pTarget));
 	backbuffer->Release();
 }
 
@@ -55,11 +66,69 @@ CGraphics::~CGraphics()
 
 void CGraphics::EndRender()
 {
-	pSwap->Present(1u, 0u);
+	HRESULT hr;
+
+	if (FAILED(hr = pSwap->Present(1u, 0u))) {
+		//handle error etc: suddenly remove graphic card,driver crash
+		if (hr == DXGI_ERROR_DEVICE_REMOVED) {
+			//https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11device-getdeviceremovedreason
+			throw GFX_DEVICE_REMOVED_EXCEPT(pDevice->GetDeviceRemovedReason());
+		}
+		else {
+			GFX_THROW_FAILED(hr);
+		}
+	}
 }
 
 void CGraphics::ClearBuffer(float _red, float _green, float _blue) noexcept
 {
 	const float color[] = { _red,_green,_blue,1.f };
 	pContext->ClearRenderTargetView(pTarget, color);
+}
+
+// Graphics exception stuff
+CGraphics::HrException::HrException(int _line, const char* _file, HRESULT _hr) noexcept
+	: Exception(_line, _file)
+	, hr(_hr)
+{}
+
+const char* CGraphics::HrException::what() const noexcept
+{
+	std::ostringstream oss;
+	oss << GetType() << std::endl
+		<< "[Error Code] 0x" << std::hex << std::uppercase << GetErrorCode()
+		<< std::dec << " (" << (unsigned long)GetErrorCode() << ")" << std::endl
+		<< "[Error String] " << GetErrorString() << std::endl
+		<< "[Description] " << GetErrorDescription() << std::endl
+		<< GetOriginString();
+	sWhatBuffer = oss.str();
+	return sWhatBuffer.c_str();
+}
+
+const char* CGraphics::HrException::GetType() const noexcept
+{
+	return "My Graphics Exception";
+}
+
+HRESULT CGraphics::HrException::GetErrorCode() const noexcept
+{
+	return hr;
+}
+
+std::string CGraphics::HrException::GetErrorString() const noexcept
+{
+	return DXGetErrorStringA(hr);
+}
+
+std::string CGraphics::HrException::GetErrorDescription() const noexcept
+{
+	char buf[512];
+	DXGetErrorDescriptionA(hr, buf, sizeof(buf));
+	return buf;
+}
+
+
+const char* CGraphics::DeviceRemovedException::GetType() const noexcept
+{
+	return "MyGraphics Exception [Device Removed] (DXGI_ERROR_DEVICE_REMOVED)";
 }

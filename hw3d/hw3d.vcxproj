@@ -160,6 +160,7 @@
     <ClCompile Include="CTimer.cpp" />
     <ClCompile Include="CWinApp.cpp" />
     <ClCompile Include="CMyException.cpp" />
+    <ClCompile Include="dxerr.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +173,7 @@
     <ClInclude Include="CMyException.h" />
     <ClInclude Include="CKeyboard.h" />
     <ClInclude Include="CGraphics.h" />
+    <ClInclude Include="dxerr.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -179,6 +181,11 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DXGetErrorDescription.inl" />
+    <None Include="DXGetErrorString.inl" />
+    <None Include="DXTrace.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

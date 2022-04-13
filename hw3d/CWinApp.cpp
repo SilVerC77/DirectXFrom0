@@ -109,7 +109,7 @@ std::optional<int> Window::ProcessMessages()
 	//https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-peekmessagea
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
 		if (msg.message == WM_QUIT) {
-			return msg.wParam;
+			return (int)msg.wParam;
 		}
 
 		TranslateMessage(&msg);
@@ -122,6 +122,7 @@ std::optional<int> Window::ProcessMessages()
 
 CGraphics& Window::GetGraphics()
 {
+	if (!pGraphics) throw MWND_NOGFX_EXCEPT(); 
 	return *pGraphics;
 }
 
@@ -244,23 +245,25 @@ LRESULT Window::HandleMsg(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 /***************************
 *Exception
 ****************************/
-Window::Exception::Exception(int _line, const char* _file, HRESULT _hr)noexcept
-	:CMyException(_line, _file)
+
+Window::HrException::HrException(int _line, const char* _file, HRESULT _hr) noexcept
+	:Exception(_line, _file)
 	, hrResult(_hr)
 {}
 
-const char* Window::Exception::what() const noexcept
+const char* Window::HrException::what() const noexcept
 {
 	std::ostringstream oss;
 	oss << GetType() << std::endl
-		<< "[Error Code] " << GetErrorCode() << std::endl
-		<< "[Description] " << GetErrorString() << std::endl
+		<< "[Error Code] 0x" << std::hex << std::uppercase << GetErrorCode()
+		<< std::dec << " (" << (unsigned long)GetErrorCode() << ")" << std::endl
+		<< "[Description] " << GetErrorDescription() << std::endl
 		<< GetOriginString();
 	sWhatBuffer = oss.str();
 	return sWhatBuffer.c_str();
 }
 
-const char* Window::Exception::GetType() const noexcept
+const char* Window::HrException::GetType() const noexcept
 {
 	return "My Window Exception";
 }
@@ -269,7 +272,7 @@ std::string Window::Exception::TranslateErrorCode(HRESULT _hr) noexcept
 {
 	char* pmsgbuf = nullptr;
 	//TODO:Without A
-	DWORD nmsglen = FormatMessageA(
+	const DWORD nmsglen = FormatMessageA(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER		//      テキストのメモリ割り当てを要求する
 		| FORMAT_MESSAGE_FROM_SYSTEM		//      エラーメッセージはWindowsが用意しているものを使用
 		| FORMAT_MESSAGE_IGNORE_INSERTS,	//      次の引数を無視してエラーコードに対するエラーメッセージを作成する
@@ -288,12 +291,17 @@ std::string Window::Exception::TranslateErrorCode(HRESULT _hr) noexcept
 	return errorString;
 }
 
-HRESULT Window::Exception::GetErrorCode() const noexcept
+HRESULT Window::HrException::GetErrorCode() const noexcept
 {
 	return hrResult;
 }
 
-std::string Window::Exception::GetErrorString() const noexcept
+std::string Window::HrException::GetErrorDescription() const noexcept
 {
-	return TranslateErrorCode(hrResult);
+	return Exception::TranslateErrorCode(hrResult);
+}
+
+const char* Window::NoGraphicsException::GetType() const noexcept
+{
+	return "My Window Exception [No Graphics]";
 }
