@@ -153,6 +153,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CApplication.cpp" />
+    <ClCompile Include="CDXGIInfoManager.cpp" />
     <ClCompile Include="CGraphics.cpp" />
     <ClCompile Include="CKeyboard.cpp" />
     <ClCompile Include="CMouse.cpp" />
@@ -165,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CApplication.h" />
+    <ClInclude Include="CDXGIInfoManager.h" />
     <ClInclude Include="ChiliWin.h" />
     <ClInclude Include="CMouse.h" />
     <ClInclude Include="CStringConverter.h" />

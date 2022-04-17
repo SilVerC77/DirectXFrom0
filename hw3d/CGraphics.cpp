@@ -4,9 +4,20 @@
 
 #pragma comment(lib,"d3d11.lib")
 
-//Debug										**expect hr in local scope  **makesure declared a hr before use this macro
-#define GFX_THROW_FAILED(hrcall) if (FAILED(hr = (hrcall))) throw CGraphics::HrException(__LINE__, __FILE__, hr)
-#define GFX_DEVICE_REMOVED_EXCEPT(hr) CGraphics::DeviceRemovedException( __LINE__,__FILE__,(hr) )
+//Debug
+// graphics exception checking/throwing macros (some with dxgi info)
+#define GFX_EXCEPT_NOINFO(hr) CGraphics::HrException( __LINE__,__FILE__,(hr) )
+#define GFX_THROW_NOINFO(hrcall) if( FAILED( hr = (hrcall) ) ) throw CGraphics::HrException( __LINE__,__FILE__,hr )
+
+#ifndef NDEBUG
+#define GFX_EXCEPT(hr) CGraphics::HrException( __LINE__,__FILE__,(hr),InfoManager.GetMessages() )
+#define GFX_THROW_INFO(hrcall) InfoManager.Set(); if( FAILED( hr = (hrcall) ) ) throw GFX_EXCEPT(hr)
+#define GFX_DEVICE_REMOVED_EXCEPT(hr) CGraphics::DeviceRemovedException( __LINE__,__FILE__,(hr),InfoManager.GetMessages() )
+#else
+#define GFX_EXCEPT(hr) Graphics::HrException( __LINE__,__FILE__,(hr) )
+#define GFX_THROW_INFO(hrcall) GFX_THROW_NOINFO(hrcall)
+#define GFX_DEVICE_REMOVED_EXCEPT(hr) Graphics::DeviceRemovedException( __LINE__,__FILE__,(hr) )
+#endif
 
 CGraphics::CGraphics(HWND _hWnd)
 {
@@ -28,16 +39,21 @@ CGraphics::CGraphics(HWND _hWnd)
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
+	UINT swapCreateFlags = 0u;
+#ifndef NDEBUG
+	swapCreateFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
 	//check results of d3d functions
 	HRESULT hr;
 
 
 	//https://docs.microsoft.com/en-us/windows/win32/api/d3d9/nf-d3d9-idirect3ddevice9-createadditionalswapchain 
-	GFX_THROW_FAILED(D3D11CreateDeviceAndSwapChain(
+	GFX_THROW_INFO(D3D11CreateDeviceAndSwapChain(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
 		nullptr,
-		0,
+		swapCreateFlags,
 		nullptr,
 		0,
 		D3D11_SDK_VERSION,
@@ -51,8 +67,8 @@ CGraphics::CGraphics(HWND _hWnd)
 	//https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-clearrendertargetview
 	//access texture Subresource in swap chain(back buffer)
 	ID3D11Resource* backbuffer = nullptr;
-	GFX_THROW_FAILED(pSwap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&backbuffer)));
-	GFX_THROW_FAILED(pDevice->CreateRenderTargetView(backbuffer, nullptr, &pTarget));
+	GFX_THROW_INFO(pSwap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&backbuffer)));
+	GFX_THROW_INFO(pDevice->CreateRenderTargetView(backbuffer, nullptr, &pTarget));
 	backbuffer->Release();
 }
 
@@ -68,6 +84,10 @@ void CGraphics::EndRender()
 {
 	HRESULT hr;
 
+#ifndef NDEBUG
+	InfoManager.Set();
+#endif // !NDEBUG
+
 	if (FAILED(hr = pSwap->Present(1u, 0u))) {
 		//handle error etc: suddenly remove graphic card,driver crash
 		if (hr == DXGI_ERROR_DEVICE_REMOVED) {
@@ -75,7 +95,7 @@ void CGraphics::EndRender()
 			throw GFX_DEVICE_REMOVED_EXCEPT(pDevice->GetDeviceRemovedReason());
 		}
 		else {
-			GFX_THROW_FAILED(hr);
+			throw GFX_EXCEPT(hr);
 		}
 	}
 }
@@ -87,10 +107,20 @@ void CGraphics::ClearBuffer(float _red, float _green, float _blue) noexcept
 }
 
 // Graphics exception stuff
-CGraphics::HrException::HrException(int _line, const char* _file, HRESULT _hr) noexcept
+CGraphics::HrException::HrException(int _line, const char* _file, HRESULT _hr, std::vector<std::string>_info) noexcept
 	: Exception(_line, _file)
 	, hr(_hr)
-{}
+{
+	//join all messages with newlines into single string
+	for (const auto& m : _info) {
+		sInfo += m;
+		sInfo.push_back('\n');
+	}
+	//remove final newline if exist
+	if (!_info.empty()) {
+		_info.pop_back();
+	}
+}
 
 const char* CGraphics::HrException::what() const noexcept
 {
@@ -99,8 +129,10 @@ const char* CGraphics::HrException::what() const noexcept
 		<< "[Error Code] 0x" << std::hex << std::uppercase << GetErrorCode()
 		<< std::dec << " (" << (unsigned long)GetErrorCode() << ")" << std::endl
 		<< "[Error String] " << GetErrorString() << std::endl
-		<< "[Description] " << GetErrorDescription() << std::endl
-		<< GetOriginString();
+		<< "[Description] " << GetErrorDescription() << std::endl;
+	if (!sInfo.empty())
+		oss << "\n[Error Info]\n" << GetErrorInfo() << std::endl << std::endl;
+	oss << GetOriginString();
 	sWhatBuffer = oss.str();
 	return sWhatBuffer.c_str();
 }
@@ -125,6 +157,11 @@ std::string CGraphics::HrException::GetErrorDescription() const noexcept
 	char buf[512];
 	DXGetErrorDescriptionA(hr, buf, sizeof(buf));
 	return buf;
+}
+
+std::string CGraphics::HrException::GetErrorInfo() const noexcept
+{
+	return sInfo;
 }
 
 
