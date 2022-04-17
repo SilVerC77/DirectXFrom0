@@ -1,13 +1,15 @@
 #pragma once
 #include "ChiliWin.h"
+#include <wrl.h>
 #include <vector>
 #include <string>
+#include <dxgidebug.h>
 
 class CDXGIInfoManager
 {
 public:
 	CDXGIInfoManager();
-	~CDXGIInfoManager();
+	~CDXGIInfoManager()=default;
 	CDXGIInfoManager(const CDXGIInfoManager&) = delete;
 	CDXGIInfoManager& operator=(const CDXGIInfoManager&) = delete;
 	
@@ -16,5 +18,5 @@ public:
 
 private:
 	unsigned long long lNext = 0u;
-	struct IDXGIInfoQueue* pDXGIInfoQueue = nullptr;
+	Microsoft::WRL::ComPtr<struct IDXGIInfoQueue> pDXGIInfoQueue = nullptr;
 };

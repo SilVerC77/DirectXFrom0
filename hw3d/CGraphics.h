@@ -2,6 +2,7 @@
 #include "ChiliWin.h"
 #include "CMyException.h"
 #include <d3d11.h>
+#include <wrl.h>
 #include <vector>
 #include "CDXGIInfoManager.h"
 
@@ -40,16 +41,16 @@ private:
 	CDXGIInfoManager InfoManager;
 #endif // !NDEBUG
 
-	ID3D11Device* pDevice = nullptr;
-	IDXGISwapChain* pSwap = nullptr;
-	ID3D11DeviceContext* pContext = nullptr;
-	ID3D11RenderTargetView* pTarget = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Device> pDevice = nullptr;
+	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwap = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTarget = nullptr;
 
 public:
 	CGraphics(HWND _hWnd);
 	CGraphics(const CGraphics&) = delete;
 	CGraphics& operator=(const CGraphics&) = delete;
-	~CGraphics();
+	~CGraphics() = default;
 
 	void EndRender();
 	void ClearBuffer(float _red, float _green, float _blue) noexcept;

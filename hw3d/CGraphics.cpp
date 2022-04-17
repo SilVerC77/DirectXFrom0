@@ -66,18 +66,9 @@ CGraphics::CGraphics(HWND _hWnd)
 
 	//https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-clearrendertargetview
 	//access texture Subresource in swap chain(back buffer)
-	ID3D11Resource* backbuffer = nullptr;
-	GFX_THROW_INFO(pSwap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&backbuffer)));
-	GFX_THROW_INFO(pDevice->CreateRenderTargetView(backbuffer, nullptr, &pTarget));
-	backbuffer->Release();
-}
-
-CGraphics::~CGraphics()
-{
-	if (pTarget) pTarget->Release();
-	if (pContext) pContext->Release();
-	if (pSwap) pDevice->Release();
-	if (pDevice) pDevice->Release();
+	Microsoft::WRL::ComPtr<ID3D11Resource> backbuffer = nullptr;
+	GFX_THROW_INFO(pSwap->GetBuffer(0, __uuidof(ID3D11Resource), &backbuffer));
+	GFX_THROW_INFO(pDevice->CreateRenderTargetView(backbuffer.Get(), nullptr, &pTarget));
 }
 
 void CGraphics::EndRender()
@@ -103,7 +94,7 @@ void CGraphics::EndRender()
 void CGraphics::ClearBuffer(float _red, float _green, float _blue) noexcept
 {
 	const float color[] = { _red,_green,_blue,1.f };
-	pContext->ClearRenderTargetView(pTarget, color);
+	pContext->ClearRenderTargetView(pTarget.Get(), color);
 }
 
 // Graphics exception stuff

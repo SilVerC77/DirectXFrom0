@@ -28,12 +28,7 @@ CDXGIInfoManager::CDXGIInfoManager()
 	if (DxgiGetDebugInterface == nullptr) throw MWND_LAST_EXCEPT();
 
 	HRESULT hr;
-	GFX_THROW_NOINFO(DxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), reinterpret_cast<void**>(&pDXGIInfoQueue)));
-}
-
-CDXGIInfoManager::~CDXGIInfoManager()
-{
-	if (pDXGIInfoQueue)	pDXGIInfoQueue->Release();
+	GFX_THROW_NOINFO(DxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), &pDXGIInfoQueue));
 }
 
 void CDXGIInfoManager::Set() noexcept
